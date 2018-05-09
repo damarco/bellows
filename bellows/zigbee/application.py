@@ -155,8 +155,10 @@ class ControllerApplication(zigpy.application.ControllerApplication):
                 self.handle_join(args[0], args[1], args[4])
 
     def _handle_frame(self, message_type, aps_frame, lqi, rssi, sender, binding_index, address_index, message):
+        device = None
         try:
-            self.get_device(nwk=sender).radio_details(lqi, rssi)
+            device = self.get_device(nwk=sender)
+            device.radio_details(lqi, rssi)
         except KeyError:
             LOGGER.debug("No such device %s", sender)
 
@@ -166,7 +168,7 @@ class ControllerApplication(zigpy.application.ControllerApplication):
             deserialize = zigpy.zcl.deserialize
 
         try:
-            tsn, command_id, is_reply, args = deserialize(aps_frame.clusterId, message)
+            tsn, command_id, is_reply, args = deserialize(aps_frame.clusterId, message, device)
         except ValueError as e:
             LOGGER.error("Failed to parse message (%s) on cluster %d, because %s", binascii.hexlify(message), aps_frame.clusterId, e)
             return
